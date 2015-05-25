@@ -1,10 +1,14 @@
 class ListView < UIView
-  attr_accessor :text_area, :task_list, :add_task_button, :tasks
+  attr_accessor :text_area, :task_list, :add_task_button, :completed_tasks, :uncompleted_tasks
 
 
   def initWithFrame frame
     super
-    self.tasks = Task.all.sort { |a, b| b.created_at <=> a.created_at }
+    self.completed_tasks = Task.find(:completed, NSFEqualTo, 1).sort { |a, b| b.created_at <=> a.created_at }
+    self.uncompleted_tasks = Task.find(:completed, NSFEqualTo, 0).sort { |a, b| b.created_at <=> a.created_at }
+    NSLog("completed_count --#{self.completed_tasks.count}")
+    NSLog("uncompleted_count --#{self.uncompleted_tasks.count}")
+
     @tap_count = 0
     add_text_area
     add_task_list
@@ -42,7 +46,7 @@ class ListView < UIView
     NSLog("Task Added")
     return if self.text_area.text.nil? or self.text_area.text.empty?
     task = Task.create(:name => self.text_area.text, :created_at => Time.now, :completed => false)
-    self.tasks.unshift(task)
+    self.uncompleted_tasks.unshift(task)
 
     self.task_list.reloadData
     self.text_area.text = ""
@@ -58,24 +62,49 @@ class ListView < UIView
     self.addSubview table_view
   end
 
+  def reload_table_sections
+    self.completed_tasks = Task.find(:completed, NSFEqualTo, 1).sort { |a, b| b.created_at <=> a.created_at }
+    self.uncompleted_tasks = Task.find(:completed, NSFEqualTo, 0).sort { |a, b| b.created_at <=> a.created_at }
+self.task_list.reloadData
+    #self.task_list.reloadSections NSIndexSet.indexSetWithIndex(0), withRowAnimation:UITableViewRowAnimationFade
+    #self.task_list.reloadSections NSIndexSet.indexSetWithIndex(1), withRowAnimation:UITableViewRowAnimationFade
+  end
+
+  def numberOfSectionsInTableView(tableView)
+    2
+  end
+
+  def tableView(tableView, titleForHeaderInSection: section)
+    if section == 1
+      "completed"
+    elsif section == 0
+      "pending"
+    end
+  end
+
   def tableView(tableView, cellForRowAtIndexPath: indexPath)
 
     @reuseIdentifier ||= "cell"
     cell = tableView.dequeueReusableCellWithIdentifier(@reuseIdentifier)
     cell ||= UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier: @reuseIdentifier)
 
-
-    cell.textLabel.text = "#{self.tasks[indexPath.row].name}"
-    task = Task.find(:name, NSFEqualTo, cell.textLabel.text).first
-    line = cell.viewWithTag(2)
-    NSLog("I am Called 1#{!line.nil? and !task.completed}")
-    line.removeFromSuperview if !line.nil? and !task.completed
-    add_black_line(cell) if task.completed
+    if indexPath.section == 0
+      cell.textLabel.text = "#{self.uncompleted_tasks[indexPath.row].name}"
+    elsif indexPath.section == 1
+      cell.textLabel.text = "#{self.completed_tasks[indexPath.row].name}"
+    end
     cell
   end
 
   def tableView(tableView, numberOfRowsInSection: section)
-    self.tasks.count
+    if section == 0
+      Task.find(:completed, NSFEqualTo, 0).count
+      self.uncompleted_tasks.count
+    elsif section == 1
+      Task.find(:completed, NSFEqualTo, 1).count
+    else
+      0
+    end
   end
 
   def tableView(tableView, didSelectRowAtIndexPath: indexPath)
@@ -85,22 +114,11 @@ class ListView < UIView
     self.mark_as_done(cell)
   end
 
+
   def mark_as_done cell
     task = Task.find(:name, NSFEqualTo, cell.textLabel.text).first
-    return if task.completed
-
-    task.completed = true
-
+    task.completed = !task.completed
     task.save
-    add_black_line(cell)
-
-  end
-
-  def add_black_line cell
-    line = UILabel.alloc.init
-    line.frame = [[0, (cell.frame.size.height/2)], [(cell.frame.size.width), 2]]
-    line.tag = 2
-    line.backgroundColor = UIColor.blackColor
-    cell.addSubview(line)
+    self.reload_table_sections
   end
 end
