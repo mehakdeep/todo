@@ -6,8 +6,6 @@ class ListView < UIView
     super
     self.completed_tasks = Task.find(:completed, NSFEqualTo, 1).sort { |a, b| b.created_at <=> a.created_at }
     self.uncompleted_tasks = Task.find(:completed, NSFEqualTo, 0).sort { |a, b| b.created_at <=> a.created_at }
-    NSLog("completed_count --#{self.completed_tasks.count}")
-    NSLog("uncompleted_count --#{self.uncompleted_tasks.count}")
 
     @tap_count = 0
     add_text_area
@@ -50,7 +48,6 @@ class ListView < UIView
 
     self.task_list.reloadData
     self.text_area.text = ""
-    NSLog("I am Called 2")
   end
 
   def add_task_list
@@ -65,9 +62,7 @@ class ListView < UIView
   def reload_table_sections
     self.completed_tasks = Task.find(:completed, NSFEqualTo, 1).sort { |a, b| b.created_at <=> a.created_at }
     self.uncompleted_tasks = Task.find(:completed, NSFEqualTo, 0).sort { |a, b| b.created_at <=> a.created_at }
-self.task_list.reloadData
-    #self.task_list.reloadSections NSIndexSet.indexSetWithIndex(0), withRowAnimation:UITableViewRowAnimationFade
-    #self.task_list.reloadSections NSIndexSet.indexSetWithIndex(1), withRowAnimation:UITableViewRowAnimationFade
+    self.task_list.reloadData
   end
 
   def numberOfSectionsInTableView(tableView)
@@ -109,7 +104,6 @@ self.task_list.reloadData
 
   def tableView(tableView, didSelectRowAtIndexPath: indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
-
     cell = tableView.cellForRowAtIndexPath(indexPath)
     self.mark_as_done(cell)
   end
