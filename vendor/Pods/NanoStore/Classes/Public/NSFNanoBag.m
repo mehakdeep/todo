@@ -208,7 +208,7 @@
 
 #pragma mark -
 
-- (BOOL)addObject:(id <NSFNanoObjectProtocol>)object error:(NSError * __autoreleasing *)outError
+- (BOOL)addObject:(id <NSFNanoObjectProtocol>)object error:(out NSError **)outError
 {
     if (NO == [(id)object conformsToProtocol:@protocol(NSFNanoObjectProtocol)]) {
         [[NSException exceptionWithName:NSFNonConformingNanoObjectProtocolException
@@ -217,7 +217,7 @@
     }
     
     NSString *objectKey = [(id)object nanoObjectKey];
-    NSDictionary *info = [object nanoObjectDictionaryRepresentation];
+    NSDictionary *info = [(id)object dictionaryRepresentation];
     
     if (objectKey && info) {
         [_savedObjects removeObjectForKey:objectKey];
@@ -237,7 +237,7 @@
     return YES;
 }
 
-- (BOOL)addObjectsFromArray:(NSArray *)someObjects error:(NSError * __autoreleasing *)outError
+- (BOOL)addObjectsFromArray:(NSArray *)someObjects error:(out NSError **)outError
 {
     if (nil == someObjects) {
         if (nil != outError) {
@@ -331,7 +331,7 @@
     }
 }
 
-- (BOOL)saveAndReturnError:(NSError * __autoreleasing *)outError
+- (BOOL)saveAndReturnError:(out NSError **)outError
 {
     if (NO == self.hasUnsavedChanges) {
         return YES;
@@ -368,7 +368,7 @@
     [self _inflateObjectsWithKeys:objectKeys];
 }
 
-- (BOOL)reloadBagWithError:(NSError * __autoreleasing *)outError
+- (BOOL)reloadBagWithError:(out NSError **)outError
 {
     // If the bag is not associated to a document store, there is no need to continue
     if (nil == _store) {
@@ -397,7 +397,7 @@
     return YES;
 }
 
-- (BOOL)undoChangesWithError:(NSError * __autoreleasing *)outError
+- (BOOL)undoChangesWithError:(out NSError **)outError
 {
     [_savedObjects removeAllObjects];
     [_unsavedObjects removeAllObjects];
@@ -449,7 +449,7 @@
     _store = aStore;
 }
 
-- (BOOL)_saveInStore:(NSFNanoStore *)someStore error:(NSError * __autoreleasing *)outError
+- (BOOL)_saveInStore:(NSFNanoStore *)someStore error:(out NSError **)outError
 {
     // Save the unsaved objects first...
     NSArray *contentsToBeSaved = [_unsavedObjects allValues];
@@ -465,10 +465,10 @@
     // Save the unsaved bag...
     BOOL success = [someStore _addObjectsFromArray:[NSArray arrayWithObject:self] forceSave:YES error:outError];
     
-    if (success) {
+    if (YES == success) {
         [_unsavedObjects removeAllObjects];
         success = [self reloadBagWithError:outError];
-        if (success) {
+        if (YES == success) {
             _hasUnsavedChanges = NO;
         }
         return success;

@@ -176,14 +176,14 @@
         }
     }
     
-    if (success) {
+    if (YES == success) {
         success = [_info isEqualToDictionary:otherNanoObject.info];
     }
     
     return success;
 }
 
-- (BOOL)saveStoreAndReturnError:(NSError * __autoreleasing *)outError
+- (BOOL)saveStoreAndReturnError:(out NSError **)outError
 {
     [_store addObject:self error:outError];
     
@@ -256,7 +256,7 @@
         return JSONInfo;
     }
     
-    if (error != nil) {
+    if (*error) {
         *error = tempError;
     }
     
