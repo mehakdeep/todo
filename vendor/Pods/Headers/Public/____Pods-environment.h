@@ -9,6 +9,6 @@
 // NanoStore
 #define COCOAPODS_POD_AVAILABLE_NanoStore
 #define COCOAPODS_VERSION_MAJOR_NanoStore 2
-#define COCOAPODS_VERSION_MINOR_NanoStore 7
-#define COCOAPODS_VERSION_PATCH_NanoStore 7
+#define COCOAPODS_VERSION_MINOR_NanoStore 6
+#define COCOAPODS_VERSION_PATCH_NanoStore 4
 

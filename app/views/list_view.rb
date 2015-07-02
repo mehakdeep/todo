@@ -51,10 +51,10 @@ class ListView < UIView
   end
 
   def add_task_list
-    table_view = UITableView.alloc.initWithFrame(CGRectMake(0, 70, self.frame.size.width, 200))
+    table_view = UITableView.alloc.initWithFrame([[0, 70], [self.bounds.size.width, self.bounds.size.height - 70]], style: UITableViewStyleGrouped)
     table_view.dataSource = self
     table_view.delegate = self
-    table_view.clipsToBounds = false
+    table_view.clipsToBounds = true
     self.task_list = table_view
     self.addSubview table_view
   end
@@ -81,14 +81,20 @@ class ListView < UIView
 
     @reuseIdentifier ||= "cell"
     cell = tableView.dequeueReusableCellWithIdentifier(@reuseIdentifier)
-    cell ||= UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier: @reuseIdentifier)
+    cell ||= UITableViewCell.alloc.initWithStyle(UITableViewCellStyleSubtitle, reuseIdentifier: @reuseIdentifier)
 
     if indexPath.section == 0
       cell.textLabel.text = "#{self.uncompleted_tasks[indexPath.row].name}"
+      cell.detailTextLabel.text = format_time self.uncompleted_tasks[indexPath.row].created_at
     elsif indexPath.section == 1
       cell.textLabel.text = "#{self.completed_tasks[indexPath.row].name}"
+      cell.detailTextLabel.text = format_time self.completed_tasks[indexPath.row].created_at
     end
     cell
+  end
+
+  def format_time time
+    timestamp = time.strftime("Created on %m/%d/%Y") + time.strftime(" at %I:%M:%S%p")
   end
 
   def tableView(tableView, numberOfRowsInSection: section)
@@ -105,12 +111,23 @@ class ListView < UIView
   def tableView(tableView, didSelectRowAtIndexPath: indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
     cell = tableView.cellForRowAtIndexPath(indexPath)
-    self.mark_as_done(cell)
+    self.mark_as_done(cell, indexPath)
   end
 
 
-  def mark_as_done cell
-    task = Task.find(:name, NSFEqualTo, cell.textLabel.text).first
+  def mark_as_done cell, indexPath
+    tasks = Task.find(:name, NSFEqualTo, cell.textLabel.text)
+    task = Task.new
+    if indexPath.section == 0
+      timestamp = self.uncompleted_tasks[indexPath.row].created_at
+    else
+      timestamp = self.completed_tasks[indexPath.row].created_at
+    end
+
+    tasks.each do |t|
+      task = t if t.created_at == timestamp
+    end
+
     task.completed = !task.completed
     task.save
     self.reload_table_sections

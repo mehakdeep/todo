@@ -281,11 +281,11 @@
  @see NSFNanoEngine
  */
 
-- (NSFJournalModeMode)journalModeAndReturnError:(NSError * __autoreleasing *)outError;
+- (NSFJournalModeMode)journalModeAndReturnError:(out NSError **)outError;
 
 /** Returns the journal mode.
  * @return The current journal mode.
- * @see - (NSFJournalModeMode)journalModeAndReturnError:(NSError * __autoreleasing *)outError;
+ * @see - (NSFJournalModeMode)journalModeAndReturnError:(out NSError **)outError;
  */
 - (BOOL)setJournalMode:(NSFJournalModeMode)theMode;
 
